@@ -26,7 +26,9 @@ Design notes:
 
 from __future__ import annotations
 
+import argparse
 import logging
+import sys
 from typing import Tuple
 
 # Ré-export des symboles principaux (compatibilité)
@@ -109,3 +111,93 @@ def decompress_file(in_path: str, out_path: str) -> None:
     original = decompress(payload)
     with open(out_path, "wb") as f:
         f.write(original)
+
+
+# --- CLI entrypoint -------------------------------------------------------
+
+def _print_stats(orig_bytes: bytes, payload: bytes) -> None:
+    orig_size = len(orig_bytes)
+    comp_size = len(payload)
+    space_count = orig_bytes.count(0x20)
+    space_ratio = (space_count / orig_size) * 100 if orig_size else 0.0
+    gain = (1 - (comp_size / orig_size)) * 100 if orig_size else 0.0
+    print(f"Orig: {orig_size} bytes, Compiled: {comp_size} bytes, spaces: {space_count} ({space_ratio:.1f}%), gain: {gain:+.2f}%")
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(prog="api.py", description="Octet-Économe CLI: compress/decompress files or stdin/stdout")
+    sub = parser.add_subparsers(dest="cmd")
+
+    p_comp = sub.add_parser("compress", help="Compress a file to .octet format")
+    p_comp.add_argument("input", help="Input file path (use - for stdin)")
+    p_comp.add_argument("output", help="Output file path (use - for stdout)")
+    p_comp.add_argument("-v", "--verbose", action="store_true", help="Verbose logging")
+
+    p_decomp = sub.add_parser("decompress", help="Decompress a .octet file")
+    p_decomp.add_argument("input", help="Input .octet path (use - for stdin)")
+    p_decomp.add_argument("output", help="Output path (use - for stdout)")
+    p_decomp.add_argument("-v", "--verbose", action="store_true", help="Verbose logging")
+
+    args = parser.parse_args(argv)
+
+    # configure logging
+    logging.basicConfig(level=logging.DEBUG if getattr(args, "verbose", False) else logging.INFO)
+
+    try:
+        if args.cmd == "compress":
+            # input
+            if args.input == "-":
+                raw = sys.stdin.buffer.read()
+                payload = compress(raw)
+                if args.output == "-":
+                    sys.stdout.buffer.write(payload)
+                else:
+                    with open(args.output, "wb") as f:
+                        f.write(payload)
+                _print_stats(raw, payload)
+            else:
+                with open(args.input, "rb") as f:
+                    raw = f.read()
+                payload = compress(raw)
+                if args.output == "-":
+                    sys.stdout.buffer.write(payload)
+                else:
+                    with open(args.output, "wb") as f:
+                        f.write(payload)
+                _print_stats(raw, payload)
+
+        elif args.cmd == "decompress":
+            if args.input == "-":
+                payload = sys.stdin.buffer.read()
+                original = decompress(payload)
+                if args.output == "-":
+                    sys.stdout.buffer.write(original)
+                else:
+                    with open(args.output, "wb") as f:
+                        f.write(original)
+                print(f"Decompressed: {len(original)} bytes")
+            else:
+                with open(args.input, "rb") as f:
+                    payload = f.read()
+                original = decompress(payload)
+                if args.output == "-":
+                    sys.stdout.buffer.write(original)
+                else:
+                    with open(args.output, "wb") as f:
+                        f.write(original)
+                print(f"Decompressed: {len(original)} bytes")
+
+        else:
+            parser.print_help()
+            return 2
+
+    except Exception as exc:  # pragma: no cover - surface errors to caller
+        print(f"Error: {exc}", file=sys.stderr)
+        logging.exception("CLI operation failed")
+        return 1
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
