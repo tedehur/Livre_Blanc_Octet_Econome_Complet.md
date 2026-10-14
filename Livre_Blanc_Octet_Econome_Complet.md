@@ -272,3 +272,168 @@ btn_compress.pack(pady=30)
 tk.Label(root, text="Architecture Inviolable - Le bit '1' est exclusivement réservé au vide.", fg="gray").pack(side="bottom", pady=20)
 root.mainloop()
 ```
+
+Cette architecture vise à éliminer le point de rupture unique :
+- les serveurs Alpha et Bêta fonctionnent en miroir ;
+- les postes sont dual-homed sur les deux chemins ;
+- la comparaison de flux est en temps réel ;
+- toute divergence devient un signal de sécurité, pas un simple incident technique.
+
+### 3.2 Vote binaire et validation bit-à-bit
+
+Le moteur central de cette architecture est un nœud de vote matériel. Deux chemins indépendants sont comparés sous un contrôle strict de synchronisation, de latence et de validité.
+
+Le système peut alors :
+- valider l’identité du flux ;
+- détecter une divergence instantanément ;
+- couper le chemin compromis ;
+- lancer la purge, l’isolation ou la reconstruction de la vue exposée.
+
+Le support de validation est matériel, ce qui le rend moins vulnérable à l’ingénierie logicielle classique et plus résistant aux attaques de niveau applicatif.
+
+## 4. Vue système : niveau 0
+
+```mermaid
+flowchart LR
+  U[Soignants / Postes (Dual-Homed)]
+  Net[Réseau dual<br/>(Chemin Alpha ↔ Chemin Bêta)]
+  A[Serveur ALPHA<br/>(Backbone primaire)]
+  B[Serveur BÊTA<br/>(Miroir indépendant)]
+  V[Nœud de vote matériel (FPGA)<br/>comparaison bit-à-bit, latence déterministe]
+  CL[Clones jetables (Lecture seule)]
+  M[Base maître (Écriture protégée)]
+  K[Clé matérielle & Présence physique<br/>(required pour écriture)]
+
+  U --> Net
+  Net --> A
+  Net --> B
+
+  A --> V
+  B --> V
+
+  V -->|OK| CL
+  V -->|Divergence → Isolation / Purge| CL
+  V -->|Write request (signed)| M
+  K -.->|autorise| M
+
+  note right of V
+    Plan de gestion: PTP / QoS / Monitoring / SIEM
+  end
+```
+
+Cette vue fonctionnelle montre la logique complète :
+- les postes sont connectés à deux chemins indépendants ;
+- les serveurs principaux sont redondés ;
+- la cohérence du flux est contrôlée par un moteur matériel ;
+- les données exposées sont des clones de lecture, pas des sources de vérité ;
+- les demandes d’écriture sont signées, authentifiées et soumises à une autorisation matérielle.
+
+Cette disposition permet de réduire la ligne de survie de l’attaquant et de rendre la compromission moins rentable.
+
+## 5. Vue matérielle et signal : niveau 2
+
+```mermaid
+flowchart TB
+  subgraph PATHS["Entrées physiques (chemins indépendants)"]
+    PA[Optique / Cuivre A - Rx]
+    PB[Optique / Cuivre B - Rx]
+  end
+
+  subgraph HW["Nœud matériel (FPGA)"]
+    SERDES_A[SERDES A<br/>(deserialization)]
+    SERDES_B[SERDES B]
+    CLK_REC_A[Clock recovery A]
+    CLK_REC_B[Clock recovery B]
+    PTP[PTP / Reference Time]
+    ALIGN[FIFO d'alignement (elastic buffer)]
+    BIT_COMP[Comparateur bit-à-bit (XOR)]
+    WINDOW[Fenêtre temporelle / alignement]
+    CRCCHK[CRC / Hash per block]
+    VOTE_LOGIC[Logique de vote / validité]
+    DECODER[Décodeur stéganographique<br/>(1 = espace, 0+8bits)]
+    OUT_BUFFER[Buffer de sortie sécurisé]
+    HSM[HSM / TPM (signature, clés)]
+    WATCHDOG[Watchdog & Timeout]
+    TRIGGER[Trigger sécurité]
+    ALARM[Alarme / SIEM logging]
+    ACTUATOR[Interface d'isolation réseau / purge hardware]
+  end
+
+  PA --> SERDES_A --> CLK_REC_A --> ALIGN --> BIT_COMP
+  PB --> SERDES_B --> CLK_REC_B --> ALIGN --> BIT_COMP
+
+  PTP -.-> CLK_REC_A
+  PTP -.-> CLK_REC_B
+  PTP -.-> WINDOW
+
+  BIT_COMP --> CRCCHK --> VOTE_LOGIC
+  WINDOW --> VOTE_LOGIC
+  WATCHDOG --> VOTE_LOGIC
+
+  VOTE_LOGIC -->|identique| DECODER
+  VOTE_LOGIC -->|divergence| TRIGGER
+
+  DECODER --> OUT_BUFFER --> HSM
+  HSM -->|signed request| OUT_BUFFER
+
+  TRIGGER --> ALARM
+  TRIGGER --> ACTUATOR
+  TRIGGER -->|log| ALARM
+
+  ACTUATOR -->|coupure/purge| PATHS
+  ALARM -->|envoi| SIEM[(SIEM / Monitoring)]
+
+  note right of BIT_COMP
+    Échantillonnage à fréquence fixe — jitter ≤ seuil
+  end
+
+  note right of HSM
+    Clés protégées, preuve d'autorisation physique requise
+  end
+```
+
+Le nœud de vote FPGA constitue le cœur de l’architecture. Il compare les flux Alpha et Bêta bit-à-bit depuis deux chemins physiques indépendants. L’alignement temporel est strict, la synchronisation repose sur des mécanismes de référence, et toute anomalie est immédiatement interprétée comme un événement critique.
+
+La logique qui suit enchaîne ensuite :
+- comparaison de blocs ;
+- vérification de cohérence du signal ;
+- validation de l’intégrité ;
+- déclenchement d’isolation ou de purges automatisées.
+
+C’est une architecture orientée vers la résilience du signal, et non vers la simple correction applicative.
+
+## 6. Feuille de route et appel aux contributeurs
+
+Ce modèle dépasse le cadre d’un concept de sécurité isolé. Il constitue une proposition d’architecture qui exige un effort multidisciplinaire pour passer du concept au système exploitable.
+
+Les axes de développement sont clairs :
+
+- Ingénierie bas niveau :
+  - développement de compilateurs textuels vers binaire ;
+  - optimisation de l’arbre asymétrique ;
+  - moteur de rendu dédié et robuste.
+
+- Architecture réseau :
+  - protocoles résilients à la manipulation ;
+  - gestion de la redondance active ;
+  - mécanismes de validation du flux en temps réel.
+
+- Sécurité offensive :
+  - audit de robustesse ;
+  - simulations de compromission interne ;
+  - validation des temps de réaction et de neutralisation.
+
+- Validation matérielle :
+  - preuve de concept avec FPGA ;
+  - intégration de mécanismes de vote ;
+  - sécurisation des clés et des éléments de signature.
+
+Le but n’est pas de produire un système “parfait”, mais un système dans lequel la compromission, la corruption ou l’injection ne peuvent pas conduire à la perte totale de la donnée ou de la continuité de service.
+
+## Conclusion
+
+L’écosystème Octet-Économe introduit une logique de sécurité structurelle fondée sur la réduction de la surface exploitable, la séparation des privilèges, la redondance physique et la neutralisation rapide des événements anormaux.
+
+Il ne cherche pas uniquement à bloquer la menace dans la couche applicative. Il la déstructures à la source, au niveau du signal, de la donnée et de la topologie du système. La logique n’est plus de “défendre un périmètre” mais de rendre l’attaque impossible à stabiliser, à exploiter durablement et à transformer en avantage opérationnel.
+
+Il s’agit d’un modèle conceptuel, mais il ouvre une voie claire : les infrastructures critiques doivent être conçues moins comme des systèmes de calcul classiques que comme des structures de résilience où la validité du signal, la séparation des privilèges et la redondance matérielle deviennent des éléments de sécurité actifs.
