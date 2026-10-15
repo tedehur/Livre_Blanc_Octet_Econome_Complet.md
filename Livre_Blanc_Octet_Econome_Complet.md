@@ -26,8 +26,8 @@ flowchart TB
 
     subgraph infra[" "]
         direction LR
-        A["SERVEUR ALPHA A<br/>(Backbone Primaire)"]
-        B["SERVEUR BÊTA B<br/>(Miroir Indépendant)"]
+        A["SERVEUR ALPHA A<br(Backbone Primaire)"]
+        B["SERVEUR BÊTA B<br(Miroir Indépendant)"]
     end
 
     LD --> A
