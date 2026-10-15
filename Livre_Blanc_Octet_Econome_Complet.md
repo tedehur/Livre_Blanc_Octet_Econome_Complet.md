@@ -22,12 +22,12 @@ La topologie ci-dessous illustre le principe de redondance active et de validati
 
 ```mermaid
 flowchart TB
-    LD["Liaison Directe Dédiée A <--> B (Vote Matériel FPGA bit-à-bit temps réel)"]
+    LD["Liaison Directe Dédiée A <--> B / (Vote Matériel FPGA bit-à-bit temps réel)"]
 
     subgraph infra[" "]
         direction LR
-        A["SERVEUR ALPHA A (Backbone Primaire)"]
-        B["SERVEUR BÊTA B (Miroir Indépendant)"]
+        A["SERVEUR ALPHA A / (Backbone Primaire)"]
+        B["SERVEUR BÊTA B / (Miroir Indépendant)"]
     end
 
     LD --> A
@@ -61,9 +61,9 @@ Cette architecture vise à éliminer tout point de rupture unique : les serveurs
 ```mermaid
 flowchart LR
   U[Soignants / Postes (Dual-Homed)]
-  Net[Réseau (Chemin Alpha ↔ Chemin Bêta)]
-  A[Serveur ALPHA (Backbone primaire)]
-  B[Serveur BÊTA (Miroir indépendant)]
+  Net[Réseau / (Chemin Alpha ↔ Chemin Bêta)]
+  A[Serveur ALPHA / (Backbone primaire)]
+  B[Serveur BÊTA / (Miroir indépendant)]
   V[Nœud de vote matériel (FPGA) comparaison bit-à-bit, latence déterministe]
   CL[Clones jetables (Lecture seule)]
   M[Base maître (Écriture protégée)]
@@ -96,7 +96,7 @@ flowchart TB
   end
 
   subgraph HW["Nœud matériel (FPGA)"]
-    SERDES_A[SERDES A<br/>(deserialization)]
+    SERDES_A[SERDES A / (deserialization)]
     SERDES_B[SERDES B]
     CLK_REC_A[Clock recovery A]
     CLK_REC_B[Clock recovery B]
@@ -106,7 +106,7 @@ flowchart TB
     WINDOW[Fenêtre temporelle / alignement]
     CRCCHK[CRC / Hash per block]
     VOTE_LOGIC[Logique de vote / validité]
-    DECODER[Décodeur stéganographique<br/>(1 = espace, 0+8bits)]
+    DECODER[Décodeur stéganographique / (1 = espace, 0+8bits)]
     OUT_BUFFER[Buffer de sortie sécurisé]
     HSM[HSM / TPM (signature, clés)]
     WATCHDOG[Watchdog & Timeout]
