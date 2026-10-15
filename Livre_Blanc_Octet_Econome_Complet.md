@@ -61,13 +61,13 @@ Cette architecture vise à éliminer tout point de rupture unique : les serveurs
 ```mermaid
 flowchart LR
   U[Soignants / Postes (Dual-Homed)]
-  Net[Réseau dual<br/>(Chemin Alpha ↔ Chemin Bêta)]
-  A[Serveur ALPHA<br/>(Backbone primaire)]
-  B[Serveur BÊTA<br/>(Miroir indépendant)]
-  V[Nœud de vote matériel (FPGA)<br/>comparaison bit-à-bit, latence déterministe]
+  Net[Réseau (Chemin Alpha ↔ Chemin Bêta)]
+  A[Serveur ALPHA (Backbone primaire)]
+  B[Serveur BÊTA (Miroir indépendant)]
+  V[Nœud de vote matériel (FPGA) comparaison bit-à-bit, latence déterministe]
   CL[Clones jetables (Lecture seule)]
   M[Base maître (Écriture protégée)]
-  K[Clé matérielle & Présence physique<br/>(required pour écriture)]
+  K[Clé matérielle & Présence physique (required pour écriture)]
 
   U --> Net
   Net --> A
