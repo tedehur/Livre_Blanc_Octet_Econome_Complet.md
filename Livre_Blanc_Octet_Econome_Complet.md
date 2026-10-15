@@ -22,7 +22,7 @@ La topologie ci-dessous illustre le principe de redondance active et de validati
 
 ```mermaid
 flowchart TB
-    LD["Liaison Directe Dédiée A <--> B<br/>(Vote Matériel FPGA bit-à-bit temps réel)"]
+    LD["Liaison Directe Dédiée A <--> B<br(Vote Matériel FPGA bit-à-bit temps réel)"]
 
     subgraph infra[" "]
         direction LR
