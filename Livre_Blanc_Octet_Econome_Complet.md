@@ -1,12 +1,12 @@
 # Livre Blanc : Écosystème Octet-Économe et Architecture en Miroir Destructif
 
-Le web moderne souffre d'une obésité structurelle et d'une vulnérabilité systémique face à l'évolution des attaques de type ransomware et des compromissions de réseaux internes. Ce document présente un modèle d'architecture visant à réduire la surface exploitable et augmenter la résilience des infrastructures critiques.
+Le web moderne souffre d'une obésité structurelle et d'une vulnérabilité systémique face à l'évolution des attaques de type ransomware et des compromissions de réseaux internes. Ce document pr[...]
 
 ## 1. Le Protocole Octet-Économe : Web Binaire et Stéganographie
 Le code HTML verbeux est remplacé par un flux binaire natif, éliminant la charge d'analyse syntaxique.
 
-* **Compression Matérielle (Le Bit Unique) :** L'encodage quitte la norme ASCII de 8 bits. Il repose sur un arbre de Huffman asymétrique intégré directement dans un navigateur dédié ou au niveau du moteur de rendu.
-* **Chiffrement par l'Espacement :** La donnée n'est pas protégée par une altération mathématique des caractères. L'encodage structurel repose sur la gestion des espaces, rendant l'information moins triviale à interpréter pour un attaquant non informé.
+* **Compression Matérielle (Le Bit Unique) :** L'encodage quitte la norme ASCII de 8 bits. Il repose sur un arbre de Huffman asymétrique intégré directement dans un navigateur dédié ou au niveau[...]
+* **Chiffrement par l'Espacement :** La donnée n'est pas protégée par une altération mathématique des caractères. L'encodage structurel repose sur la gestion des espaces, rendant l'information m[...]
 * **Écologie Numérique :** Ce format binaire garantit un gain de stockage significatif à la source, réduisant l'empreinte carbone des serveurs et les besoins en bande passante.
 
 ## 2. Le Miroir Destructif : Sécurité Asymétrique Absolue
@@ -14,7 +14,7 @@ Le système délaisse la défense périmétrique logicielle classique au profit 
 
 * **Essaim de Clones Inversés :** Les utilisateurs n'ont jamais accès à la base de données mère et interagissent exclusivement avec un essaim de clones jetables.
 * **Destruction Réactive :** Un processus de vérification observe le clone. Au premier octet modifié par un processus non autorisé, le clone est instantanément isolé et purgé.
-* **Séparation Physique des Privilèges :** L'application d'une modification sur la base de données maître nécessite obligatoirement l'insertion d'une clé cryptographique matérielle par un administrateur physique.
+* **Séparation Physique des Privilèges :** L'application d'une modification sur la base de données maître nécessite obligatoirement l'insertion d'une clé cryptographique matérielle par un admin[...]
 
 ### Architecture de redondance physique et de vote matériel
 
@@ -22,7 +22,7 @@ La topologie ci-dessous illustre le principe de redondance active et de validati
 
 ```mermaid
 flowchart TB
-    LD["Liaison Directe Dédiée A <--> B / (Vote Matériel FPGA bit-à-bit temps réel)"]
+    LD["Liaison Directe Dédiée A <-> B / (Vote Matériel FPGA bit-à-bit temps réel)"]
 
     subgraph infra[" "]
         direction LR
@@ -54,20 +54,20 @@ flowchart TB
     B -->|5 liaisons indépendantes| P5
 ```
 
-Cette architecture vise à éliminer tout point de rupture unique : les serveurs Alpha et Bêta fonctionnent en miroir, les postes sont dual-homed sur les deux chemins, et la comparaison bit à bit est effectuée par un nœud matériel dédié.
+Cette architecture vise à éliminer tout point de rupture unique : les serveurs Alpha et Bêta fonctionnent en miroir, les postes sont dual-homed sur les deux chemins, et la comparaison bit à bit es[...]
 
 ### Vue système — Niveau 0
 
 ```mermaid
 flowchart LR
-  U[Soignants / Postes (Dual-Homed)]
-  Net[Réseau / (Chemin Alpha ↔ Chemin Bêta)]
-  A[Serveur ALPHA / (Backbone primaire)]
-  B[Serveur BÊTA / (Miroir indépendant)]
-  V[Nœud de vote matériel (FPGA) comparaison bit-à-bit, latence déterministe]
-  CL[Clones jetables (Lecture seule)]
-  M[Base maître (Écriture protégée)]
-  K[Clé matérielle & Présence physique (required pour écriture)]
+  U["Soignants / Postes (Dual-Homed)"]
+  Net["Réseau (Chemin Alpha <-> Chemin Bêta)"]
+  A["Serveur ALPHA (Backbone primaire)"]
+  B["Serveur BÊTA (Miroir indépendant)"]
+  V["Nœud de vote matériel (FPGA) comparaison bit-à-bit, latence déterministe"]
+  CL["Clones jetables (Lecture seule)"]
+  M["Base maître (Écriture protégée)"]
+  K["Clé matérielle & Présence physique (required pour écriture)"]
 
   U --> Net
   Net --> A
@@ -91,28 +91,28 @@ flowchart LR
 ```mermaid
 flowchart TB
   subgraph PATHS["Entrées physiques (chemins indépendants)"]
-    PA[Optique / Cuivre A - Rx]
-    PB[Optique / Cuivre B - Rx]
+    PA["Optique / Cuivre A - Rx"]
+    PB["Optique / Cuivre B - Rx"]
   end
 
   subgraph HW["Nœud matériel (FPGA)"]
-    SERDES_A[SERDES A / (deserialization)]
-    SERDES_B[SERDES B]
-    CLK_REC_A[Clock recovery A]
-    CLK_REC_B[Clock recovery B]
-    PTP[PTP / Reference Time]
-    ALIGN[FIFO d'alignement (elastic buffer)]
-    BIT_COMP[Comparateur bit-à-bit (XOR)]
-    WINDOW[Fenêtre temporelle / alignement]
-    CRCCHK[CRC / Hash per block]
-    VOTE_LOGIC[Logique de vote / validité]
-    DECODER[Décodeur stéganographique / (1 = espace, 0+8bits)]
-    OUT_BUFFER[Buffer de sortie sécurisé]
-    HSM[HSM / TPM (signature, clés)]
-    WATCHDOG[Watchdog & Timeout]
-    TRIGGER[Trigger sécurité]
-    ALARM[Alarme / SIEM logging]
-    ACTUATOR[Interface d'isolation réseau / purge hardware]
+    SERDES_A["SERDES A / (deserialization)"]
+    SERDES_B["SERDES B"]
+    CLK_REC_A["Clock recovery A"]
+    CLK_REC_B["Clock recovery B"]
+    PTP["PTP / Reference Time"]
+    ALIGN["FIFO d'alignement (elastic buffer)"]
+    BIT_COMP["Comparateur bit-à-bit (XOR)"]
+    WINDOW["Fenêtre temporelle / alignement"]
+    CRCCHK["CRC / Hash per block"]
+    VOTE_LOGIC["Logique de vote / validité"]
+    DECODER["Décodeur stéganographique / (1 = espace, 0+8bits)"]
+    OUT_BUFFER["Buffer de sortie sécurisé"]
+    HSM["HSM / TPM (signature, clés)"]
+    WATCHDOG["Watchdog & Timeout"]
+    TRIGGER["Trigger sécurité"]
+    ALARM["Alarme / SIEM logging"]
+    ACTUATOR["Interface d'isolation réseau / purge hardware"]
   end
 
   PA --> SERDES_A --> CLK_REC_A --> ALIGN --> BIT_COMP
@@ -179,4 +179,4 @@ Un test minimal est disponible dans tests/test_poc_encode_decode.py pour vérifi
 
 ## Conclusion
 
-L'écosystème Octet-Économe introduit une logique de sécurité structurelle fondée sur la réduction de la surface exploitable, la séparation des privilèges, la redondance physique et la validation matérielle des flux. Le dépôt contient maintenant une preuve de concept exécutable et des éléments de documentation pour faciliter la contribution.
+L'écosystème Octet-Économe introduit une logique de sécurité structurelle fondée sur la réduction de la surface exploitable, la séparation des privilèges, la redondance physique et la validat[...]
